@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌿 AgroDoctor Pro</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .gradient-green {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .animate-float {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .animate-pulse-slow {
+            animation: pulse-slow 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .drag-area {
+            border: 2px dashed #4CAF50;
+            transition: all 0.3s ease;
+        }
+        
+        .drag-area.drag-over {
+            border-color: #45a049;
+            background-color: rgba(76, 175, 80, 0.1);
+            transform: scale(1.02);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(76, 175, 80, 0.3);
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        @media (max-width: 640px) {
+            .notification {
+                top: 10px;
+                right: 10px;
+                left: 10px;
+                transform: translateY(-100px);
+            }
+            
+            .notification.show {
+                transform: translateY(0);
+            }
+        }
+        
+        /* Mobile-specific improvements */
+        @media (max-width: 640px) {
+            .mobile-padding {
+                padding: 1rem;
+            }
+            
+            .mobile-text {
+                font-size: 0.875rem;
+            }
+            
+            .mobile-button {
+                min-height: 48px;
+                font-size: 1rem;
+            }
+            
+            .mobile-input {
+                min-height: 48px;
+                font-size: 16px; /* Prevents zoom on iOS */
+            }
+        }
+        
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4CAF50;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+
+    <!-- Notification System -->
+    <div id="notification" class="notification rounded-lg shadow-lg p-4 max-w-sm">
+        <div id="notificationContent" class="flex items-center space-x-3">
+            <i id="notificationIcon" class="text-xl"></i>
+            <span id="notificationText" class="text-sm font-medium"></span>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="bg-white bg-opacity-20 backdrop-filter backdrop-blur-lg shadow-lg">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-center">
+                <div class="text-center">
+                    <h1 class="text-2xl md:text-3xl font-bold text-white flex items-center justify-center space-x-2">
+                        <span class="animate-pulse-slow">🌿</span>
+                        <span>AgroDoctor Pro</span>
+                    </h1>
+                    <p id="subtitle" class="text-white text-opacity-90 text-sm md:text-base mt-1">Advanced Crop Disease Detection</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-4 py-6 min-h-screen flex items-center justify-center">
+        
+        <!-- Authentication Form -->
+        <div id="auth" class="w-full max-w-md">
+            <div class="glass-card rounded-2xl shadow-2xl p-6 md:p-8 mx-4">
+                <div class="text-center mb-6">
+                    <div class="w-20 h-20 mx-auto mb-4 bg-gradient-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center animate-float">
+                        <i class="fas fa-leaf text-2xl text-white"></i>
+                    </div>
+                    <h2 id="auth-title" class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">Welcome Back</h2>
+                    <p class="text-gray-600 text-sm md:text-base">Sign in to access AgroDoctor Pro</p>
+                </div>
+                
+                <form class="space-y-4">
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-envelope text-gray-400"></i>
+                        </div>
+                        <input 
+                            type="email" 
+                            id="email" 
+                            placeholder="Enter your email" 
+                            required
+                            class="mobile-input w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-300 text-gray-700"
+                        >
+                    </div>
+                    
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-lock text-gray-400"></i>
+                        </div>
+                        <input 
+                            type="password" 
+                            id="password" 
+                            placeholder="Enter your password" 
+                            required
+                            class="mobile-input w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-300 text-gray-700"
+                        >
+                    </div>
+                    
+                    <div class="space-y-3 pt-4">
+                        <button 
+                            type="button" 
+                            onclick="login()" 
+                            class="mobile-button w-full btn-primary text-white font-semibold py-3 px-4 rounded-lg shadow-lg flex items-center justify-center space-x-2"
+                        >
+                            <i class="fas fa-sign-in-alt"></i>
+                            <span>Sign In</span>
+                        </button>
+                        
+                        <button 
+                            type="button" 
+                            onclick="signup()" 
+                            class="mobile-button w-full bg-white text-green-600 font-semibold py-3 px-4 rounded-lg border-2 border-green-500 hover:bg-green-50 transition duration-300 flex items-center justify-center space-x-2"
+                        >
+                            <i class="fas fa-user-plus"></i>
+                            <span>Create Account</span>
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="mt-6 text-center">
+                    <p class="text-xs md:text-sm text-gray-500">
+                        By signing in, you agree to our 
+                        <span class="text-green-600 font-medium">Terms of Service</span> 
+                        and 
+                        <span class="text-green-600 font-medium">Privacy Policy</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Application -->
+        <div id="main-app" class="hidden w-full max-w-4xl">
+            <div class="glass-card rounded-2xl shadow-2xl p-6 md:p-8 mx-4">
+                
+                <!-- Language Selection -->
+                <div class="mb-6">
+                    <div class="flex flex-wrap items-center justify-between gap-4">
+                        <div class="flex items-center space-x-2">
+                            <i class="fas fa-language text-green-600 text-xl"></i>
+                            <label class="text-gray-700 font-medium">Language:</label>
+                        </div>
+                        <select 
+                            id="language" 
+                            onchange="changeLanguage()" 
+                            class="mobile-input px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-700 min-w-0 flex-shrink-0"
+                        >
+                            <option value="en">🇺🇸 English</option>
+                            <option value="hi">🇮🇳 हिंदी</option>
+                            <option value="mr">🇮🇳 मराठी</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Farmer Animation -->
+                <div class="text-center mb-8">
+                    <img 
+                        src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/965749e2-a4fd-459d-aa36-344243b513da.png" 
+                        alt="Farmer reviewing crops" 
+                        class="animate-float w-32 md:w-48 h-auto mx-auto rounded-full shadow-lg"
+                    >
+                </div>
+
+                <!-- Upload Section -->
+                <div class="mb-8">
+                    <h2 id="disease-title" class="text-xl md:text-2xl font-bold text-center text-gray-800 mb-6">
+                        <i class="fas fa-camera text-green-600 mr-2"></i>
+                        Capture or Upload Plant Image
+                    </h2>
+                    
+                    <!-- Drag & Drop Area -->
+                    <div 
+                        id="dropZone"
+                        class="drag-area border-2 border-dashed border-green-400 rounded-xl p-8 md:p-12 text-center bg-green-50 bg-opacity-50 transition-all duration-300"
+                    >
+                        <div class="space-y-4">
+                            <div class="text-4xl md:text-6xl text-green-500">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                            </div>
+                            <h3 class="text-lg md:text-xl font-semibold text-gray-700">
+                                Drop your image here or click to browse
+                            </h3>
+                            <p class="text-sm md:text-base text-gray-500">
+                                Supports: JPG, PNG, GIF, WebP (Max: 10MB)
+                            </p>
+                            
+                            <div class="flex flex-col sm:flex-row gap-3 justify-center items-center">
+                                <input 
+                                    type="file" 
+                                    accept="image/*" 
+                                    id="imageInput" 
+                                    onchange="previewImage(event)" 
+                                    class="hidden"
+                                >
+                                <button 
+                                    onclick="document.getElementById('imageInput').click()" 
+                                    class="mobile-button px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition duration-300 flex items-center space-x-2"
+                                >
+                                    <i class="fas fa-folder-open"></i>
+                                    <span>Browse Files</span>
+                                </button>
+                                
+                                <button 
+                                    onclick="openCamera()" 
+                                    class="mobile-button px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-300 flex items-center space-x-2"
+                                >
+                                    <i class="fas fa-camera"></i>
+                                    <span>Use Camera</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Image Preview -->
+                    <div id="imagePreviewContainer" class="hidden mt-6">
+                        <div class="bg-white rounded-xl p-4 shadow-lg">
+                            <h4 class="font-semibold text-gray-700 mb-3 flex items-center">
+                                <i class="fas fa-image text-green-500 mr-2"></i>
+                                Image Preview
+                            </h4>
+                            <img id="imagePreview" class="w-full h-64 object-contain rounded-lg border" />
+                            <div id="imageInfo" class="mt-3 text-sm text-gray-600"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row gap-4 mb-8">
+                    <button 
+                        onclick="detectDisease()" 
+                        class="mobile-button flex-1 btn-primary text-white font-semibold py-4 px-6 rounded-lg shadow-lg flex items-center justify-center space-x-2"
+                    >
+                        <div id="detectLoader" class="loader hidden"></div>
+                        <i id="detectIcon" class="fas fa-search"></i>
+                        <span id="detectText">Analyze Disease</span>
+                    </button>
+                    
+                    <button 
+                        onclick="reset()" 
+                        class="mobile-button px-6 py-4 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition duration-300 flex items-center justify-center space-x-2"
+                    >
+                        <i class="fas fa-redo"></i>
+                        <span>Reset</span>
+                    </button>
+                </div>
+
+                <!-- Results Section -->
+                <div id="result" class="hidden">
+                    <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500">
+                        <div class="flex items-center mb-4">
+                            <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4">
+                                <i class="fas fa-microscope text-green-600 text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 id="disease-name" class="text-xl md:text-2xl font-bold text-gray-800"></h3>
+                                <p class="text-sm text-gray-500">Diagnostic Result</p>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-6">
+                            <div class="border-l-4 border-blue-400 pl-4">
+                                <h4 class="font-bold text-blue-700 text-lg flex items-center mb-2">
+                                    <i class="fas fa-info-circle mr-2"></i>
+                                    Description
+                                </h4>
+                                <p id="disease-description" class="text-gray-700 leading-relaxed"></p>
+                            </div>
+                            
+                            <div class="border-l-4 border-green-400 pl-4">
+                                <h4 class="font-bold text-green-700 text-lg flex items-center mb-2">
+                                    <i class="fas fa-tools mr-2"></i>
+                                    Treatment & Control
+                                </h4>
+                                <p id="disease-solution" class="text-gray-700 leading-relaxed whitespace-pre-line"></p>
+                            </div>
+                            
+                            <div class="border-l-4 border-red-400 pl-4">
+                                <h4 class="font-bold text-red-700 text-lg flex items-center mb-2">
+                                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                                    Causes & Prevention
+                                </h4>
+                                <p id="disease-causes" class="text-gray-700 leading-relaxed"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Profile Button -->
+                <div class="mt-8 text-center">
+                    <button 
+                        onclick="showProfile()" 
+                        class="mobile-button px-6 py-3 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition duration-300 flex items-center justify-center space-x-2 mx-auto"
+                    >
+                        <i class="fas fa-user"></i>
+                        <span>My Profile</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Section -->
+        <div id="profile" class="hidden w-full max-w-md">
+            <div class="glass-card rounded-2xl shadow-2xl p-6 md:p-8 mx-4">
+                <div class="text-center mb-6">
+                    <div class="w-20 h-20 mx-auto mb-4 bg-gradient-to-r from-indigo-400 to-indigo-600 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-2xl text-white"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Your Profile</h2>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                        <p id="user-email" class="text-gray-900 font-semibold"></p>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Member Since</label>
+                        <p class="text-gray-900 font-semibold">Today</p>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Account Type</label>
+                        <p class="text-gray-900 font-semibold">Pro Member</p>
+                    </div>
+                </div>
+                
+                <div class="space-y-3 pt-6">
+                    <button 
+                        onclick="goToApp()" 
+                        class="mobile-button w-full bg-green-500 text-white font-semibold py-3 px-4 rounded-lg hover:bg-green-600 transition duration-300 flex items-center justify-center space-x-2"
+                    >
+                        <i class="fas fa-arrow-left"></i>
+                        <span>Back to App</span>
+                    </button>
+                    
+                    <button 
+                        onclick="logout()" 
+                        class="mobile-button w-full bg-red-500 text-white font-semibold py-3 px-4 rounded-lg hover:bg-red-600 transition duration-300 flex items-center justify-center space-x-2"
+                    >
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Sign Out</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Comprehensive Disease Database
+        const diseases = {
+            "Early Blight (Alternaria solani)": {
+                en: {
+                    description: "Fungal disease causing dark concentric rings on leaves (target spots) that spread outward. Primarily affects Solanaceae crops including tomatoes, potatoes, and eggplants. Symptoms include small brown lesions with concentric rings, yellow halos around spots, and spreads from lower to upper leaves.",
+                    solution: "1. Cultural Controls:\n   - Remove infected leaves immediately\n   - Sterilize pruning tools between plants\n   - Provide adequate spacing (18-24 inches)\n   - Avoid overhead irrigation\n\n2. Chemical Controls:\n   - Apply copper-based fungicides (weekly)\n   - Use chlorothalonil or mancozeb\n   - Alternate fungicides to prevent resistance\n\n3. Prevention:\n   - Rotate crops (3-year rotation)\n   - Remove crop debris after harvest\n   - Use resistant varieties when available",
+                    causes: "Pathogen: Alternaria solani fungus. Optimal Conditions: Temperature 24-29°C (75-85°F), Humidity: Frequent leaf wetness (>12 hrs). Spreads via infected seeds, soil, wind, and water splashes."
+                },
+                hi: {
+                    description: "कवक रोग जो पत्तियों पर काले एकाग्र छल्ले बनाता है। टमाटर, आलू और बैंगन को प्रभावित करता है।",
+                    solution: "1. संक्रमित पत्तियों को तुरंत हटाएं\n2. तांबा आधारित कवकनाशी लगाएं\n3. फसल चक्र अपनाएं\n4. पौधों के बीच उचित दूरी रखें\n5. पत्तियों पर नहीं, सीधे जड़ों में पानी दें",
+                    causes: "गर्म (21-29°C), नम मौसम में फैलता है, पानी के छींटों से संक्रमण फैलता है"
+                },
+                mr: {
+                    description: "बुरशीजन्य रोग ज्यामुळे पानावर काळे एकाग्र वर्तुळे तयार होतात. टोमॅटो, बटाटा आणि वांगी यांना प्रभावित करते.",
+                    solution: "1. संसर्गीत पाने लगेच काढा\n2. तांबे आधारित फंगिसायड वापरा\n3. पिकचक्र पाळा\n4. वायुवीजनासाठी पुरेसे अंतर ठेवा\n5. पातळ्यांवर न पाणी घालता मुळांवर पाणी द्या",
+                    causes: "उबदार (21-29°C), दमट हवामानात पसरते, पाण्याच्या थेंबांमुळे संसर्ग होतो"
+                }
+            },
+            "Late Blight (Phytophthora infestans)": {
+                en: {
+                    description: "Destructive water mold disease causing water-soaked lesions that rapidly turn brown and black. Affects tomatoes and potatoes severely. Can destroy entire crop within days under favorable conditions.",
+                    solution: "1. Use resistant varieties when available\n2. Apply preventive copper-based fungicides\n3. Remove and destroy infected plants immediately\n4. Avoid overhead irrigation, use drip irrigation\n5. Ensure good air circulation\n6. Remove crop debris after harvest\n7. Use certified disease-free seeds",
+                    causes: "Cool (15-21°C), wet weather with high humidity promotes rapid spread. Spreads through wind-blown spores and water splashes."
+                },
+                hi: {
+                    description: "विनाशकारी बीमारी जो भूरे रंग के दाग बनाती है। टमाटर और आलू को प्रभावित करती है। पूरी फसल को कुछ दिनों में नष्ट कर सकती है।",
+                    solution: "1. प्रतिरोधी किस्मों का उपयोग करें\n2. क्लोरोथैलोनिल कवकनाशी लगाएं\n3. संक्रमित पौधों को नष्ट करें\n4. ऊपर से सिंचाई से बचें\n5. फसल अवशेषों को हटा दें",
+                    causes: "ठंडा (15-21°C), गीला मौसम तेजी से फैलाता है"
+                },
+                mr: {
+                    description: "विनाशकारी रोग ज्यामुळे पाण्यासारखे डाग होतात जे तपकिरी होतात. टोमॅटो आणि बटाटा यांना प्रभावित करतो.",
+                    solution: "1. प्रतिरोधक जाती वापरा\n2. क्लोरोथॅलोनिल फंगिसायड लावा\n3. संसर्गीत वनस्पती नष्ट करा\n4. वरून पाणी देणे टाळा\n5. पिका संपल्यावर अवशेष काढून टाका",
+                    causes: "थंड (15-21°C), ओल्या हवामानात वेगाने पसरते"
+                }
+            },
+            "Powdery Mildew": {
+                en: {
+                    description: "Fungal disease appearing as white, powdery patches on leaves, stems, and flowers. Affects wide range of crops including grapes, cucumbers, roses, and cereals.",
+                    solution: "1. Improve air circulation around plants\n2. Apply sulfur-based fungicides\n3. Use baking soda spray (1 tsp/quart water)\n4. Remove affected plant parts\n5. Avoid overhead watering\n6. Plant resistant varieties",
+                    causes: "High humidity, poor air circulation, moderate temperatures (20-25°C). Spreads via airborne spores."
+                },
+                hi: {
+                    description: "सफेद पाउडर जैसे धब्बे पत्तियों पर दिखाई देते हैं। अंगूर, खीरा, गुलाब और अनाज को प्रभावित करता है।",
+                    solution: "1. पौधों के आसपास हवा का संचार बढ़ाएं\n2. सल्फर आधारित कवकनाशी लगाएं\n3. बेकिंग सोडा स्प्रे करें\n4. प्रभावित हिस्सों को हटाएं\n5. प्रतिरोधी किस्में लगाएं",
+                    causes: "अधिक नमी, खराब हवा संचार, मध्यम तापमान में फैलता है"
+                },
+                mr: {
+                    description: "पानावर पांढरे पावडरसारखे डाग दिसतात. द्राक्षे, काकडी, गुलाब आणि धान्यांना प्रभावित करते.",
+                    solution: "1. वनस्पतींभोवती हवेचे चांगले वाहन करा\n2. सल्फर आधारित फंगिसायड वापरा\n3. बेकिंग सोडा फवारा\n4. प्रभावित भाग काढा\n5. प्रतिरोधक जाती लावा",
+                    causes: "जास्त आर्द्रता, खराब हवा वाहन, मध्यम तापमानात पसरते"
+                }
+            },
+            "Bacterial Spot": {
+                en: {
+                    description: "Bacterial disease causing small, dark, water-soaked spots on leaves and fruits. Common in tomatoes, peppers, and stone fruits.",
+                    solution: "1. Use copper-based bactericides\n2. Remove infected plant debris\n3. Use drip irrigation instead of overhead\n4. Plant certified disease-free seeds\n5. Rotate crops annually\n6. Disinfect tools between plants",
+                    causes: "Warm, humid conditions with temperatures 24-30°C. Spreads through water splash and contaminated tools."
+                },
+                hi: {
+                    description: "जीवाणु रोग जो पत्तियों और फलों पर छोटे, काले, पानी जैसे धब्बे बनाता है। टमाटर, मिर्च में आम।",
+                    solution: "1. तांबा आधारित जीवाणुनाशी का उपयोग करें\n2. संक्रमित पौधों के अवशेष हटाएं\n3. ड्रिप सिंचाई का उपयोग करें\n4. रोग मुक्त बीज लगाएं\n5. फसल चक्र अपनाएं",
+                    causes: "गर्म, नम स्थितियों में फैलता है (24-30°C)"
+                },
+                mr: {
+                    description: "जीवाणूजन्य रोग ज्यामुळे पाने आणि फळांवर छोटे, काळे, पाण्यासारखे डाग होतात. टोमॅटो, मिरची यांत सामान्य.",
+                    solution: "1. तांबे आधारित जीवाणूनाशक वापरा\n2. संसर्गीत अवशेष काढा\n3. ठिबक सिंचन वापरा\n4. रोगमुक्त बियाणे वापरा\n5. पिकचक्र पाळा",
+                    causes: "उबदार, दमट परिस्थितीत पसरते (24-30°C)"
+                }
+            },
+            "Nitrogen Deficiency": {
+                en: {
+                    description: "Nutrient deficiency showing as yellowing of older leaves (chlorosis) starting from leaf tips and margins. Affects overall plant growth and yield.",
+                    solution: "1. Apply nitrogen-rich fertilizers (urea, ammonium sulfate)\n2. Use organic compost or manure\n3. Apply foliar nitrogen spray for quick fix\n4. Ensure proper soil pH (6.0-7.0)\n5. Regular soil testing\n6. Side-dress with nitrogen during growing season",
+                    causes: "Poor soil fertility, excessive rainfall leaching nutrients, sandy soils with poor retention, over-cropping without fertilization."
+                },
+                hi: {
+                    description: "पोषक तत्व की कमी से पुरानी पत्तियां पीली हो जाती हैं। पैदावार और विकास प्रभावित होता है।",
+                    solution: "1. नाइट्रोजन युक्त उर्वरक दें (यूरिया, अमोनियम सल्फेट)\n2. जैविक खाद का उपयोग करें\n3. पत्तियों पर नाइट्रोजन स्प्रे करें\n4. मिट्टी का pH 6.0-7.0 रखें\n5. नियमित मिट्टी परीक्षण कराएं",
+                    causes: "खराब मिट्टी की उर्वरता, अधिक बारिश से पोषक तत्वों का नुकसान"
+                },
+                mr: {
+                    description: "पोषक तत्वाच्या कमतरतेमुळे जुनी पाने पिवळी होतात. उत्पादन आणि वाढ प्रभावित होते.",
+                    solution: "1. नायट्रोजन युक्त खते द्या (युरिया, अमोनियम सल्फेट)\n2. सेंद्रिय खताचा वापर करा\n3. पानांवर नायट्रोजन फवारा\n4. मातीचा pH 6.0-7.0 ठेवा\n5. नियमित माती तपासणी करा",
+                    causes: "खराब माती सुपीकता, जास्त पावसामुळे पोषक तत्वांची हानी"
+                }
+            }
+        };
+
+        // Authentication Functions
+        function signup() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            if (!email || !password) {
+                showNotification('Please fill in all fields', 'error');
+                return;
+            }
+            
+            if (!isValidEmail(email)) {
+                showNotification('Please enter a valid email address', 'error');
+                return;
+            }
+            
+            localStorage.setItem('email', email);
+            localStorage.setItem('password', password);
+            showNotification('Account created successfully! You can now sign in.', 'success');
+            
+            // Clear fields
+            document.getElementById('email').value = '';
+            document.getElementById('password').value = '';
+        }
+
+        function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            if (!email || !password) {
+                showNotification('Please fill in all fields', 'error');
+                return;
+            }
+            
+            const storedEmail = localStorage.getItem('email');
+            const storedPassword = localStorage.getItem('password');
+            
+            if (storedEmail === email && storedPassword === password) {
+                document.getElementById('auth').classList.add('hidden');
+                document.getElementById('main-app').classList.remove('hidden');
+                document.getElementById('user-email').innerText = email;
+                showNotification('Welcome to AgroDoctor Pro!', 'success');
+            } else {
+                showNotification('Invalid credentials. Please try again.', 'error');
+            }
+        }
+
+        function logout() {
+            document.getElementById('auth').classList.remove('hidden');
+            document.getElementById('main-app').classList.add('hidden');
+            document.getElementById('profile').classList.add('hidden');
+            document.getElementById('email').value = '';
+            document.getElementById('password').value = '';
+            reset();
+            showNotification('Signed out successfully', 'info');
+        }
+
+        function showProfile() {
+            document.getElementById('main-app').classList.add('hidden');
+            document.getElementById('profile').classList.remove('hidden');
+        }
+
+        function goToApp() {
+            document.getElementById('profile').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('hidden');
+        }
+
+        // File Upload Functions
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (!validateFile(file)) return;
+            
+            const imagePreview = document.getElementById('imagePreview');
+            const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+            const imageInfo = document.getElementById('imageInfo');
+            
+            imagePreview.src = URL.createObjectURL(file);
+            imagePreviewContainer.classList.remove('hidden');
+            
+            // Show file information
+            imageInfo.innerHTML = `
+                <div class="flex flex-wrap items-center justify-between text-sm">
+                    <span><i class="fas fa-file-image mr-1"></i> ${file.name}</span>
+                    <span><i class="fas fa-weight mr-1"></i> ${(file.size / 1024 / 1024).toFixed(2)} MB</span>
+                </div>
+            `;
+            
+            showNotification('Image uploaded successfully!', 'success');
+        }
+
+        function validateFile(file) {
+            const maxSize = 10 * 1024 * 1024; // 10MB
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp'];
+            
+            if (!allowedTypes.includes(file.type)) {
+                showNotification('Invalid file type. Please upload JPG, PNG, GIF, WebP, or BMP files.', 'error');
+                return false;
+            }
+            
+            if (file.size > maxSize) {
+                showNotification('File too large. Maximum size is 10MB.', 'error');
+                return false;
+            }
+            
+            return true;
+        }
+
+        function openCamera() {
+            const input = document.getElementById('imageInput');
+            input.setAttribute('capture', 'camera');
+            input.click();
+        }
+
+        // Drag and Drop Functionality
+        function setupDragAndDrop() {
+            const dropZone = document.getElementById('dropZone');
+            const imageInput = document.getElementById('imageInput');
+
+            dropZone.addEventListener('click', () => imageInput.click());
+
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('drag-over');
+            });
+
+            dropZone.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('drag-over');
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('drag-over');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    const file = files[0];
+                    if (validateFile(file)) {
+                        imageInput.files = files;
+                        previewImage({ target: { files: [file] } });
+                    }
+                }
+            });
+        }
+
+        // Disease Detection
+        function detectDisease() {
+            const imagePreview = document.getElementById('imagePreview');
+            if (!imagePreview.src || imagePreview.classList.contains('hidden')) {
+                showNotification('Please upload an image first', 'warning');
+                return;
+            }
+            
+            // Show loading state
+            const detectText = document.getElementById('detectText');
+            const detectIcon = document.getElementById('detectIcon');
+            const detectLoader = document.getElementById('detectLoader');
+            
+            detectText.textContent = 'Analyzing...';
+            detectIcon.classList.add('hidden');
+            detectLoader.classList.remove('hidden');
+            
+            // Simulate processing time
+            setTimeout(() => {
+                const diseasesList = Object.keys(diseases);
+                const randomDisease = diseasesList[Math.floor(Math.random() * diseasesList.length)];
+                const language = document.getElementById('language').value;
+                const disease = diseases[randomDisease][language];
+
+                document.getElementById('disease-name').innerText = randomDisease;
+                document.getElementById('disease-description').innerText = disease.description;
+                document.getElementById('disease-solution').innerText = disease.solution;
+                document.getElementById('disease-causes').innerText = disease.causes;
+                document.getElementById('result').classList.remove('hidden');
+                
+                // Reset button state
+                detectText.textContent = 'Analyze Disease';
+                detectIcon.classList.remove('hidden');
+                detectLoader.classList.add('hidden');
+                
+                showNotification('Analysis complete!', 'success');
+                
+                // Scroll to results
+                document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
+            }, 2000);
+        }
+
+        function reset() {
+            document.getElementById('imageInput').value = '';
+            document.getElementById('imagePreviewContainer').classList.add('hidden');
+            document.getElementById('result').classList.add('hidden');
+            
+            // Reset button state
+            document.getElementById('detectText').textContent = 'Analyze Disease';
+            document.getElementById('detectIcon').classList.remove('hidden');
+            document.getElementById('detectLoader').classList.add('hidden');
+            
+            showNotification('Reset successful', 'info');
+        }
+
+        function changeLanguage() {
+            const language = document.getElementById('language').value;
+            
+            // Update UI text based on language
+            const titles = {
+                en: 'Advanced Crop Disease Detection',
+                hi: 'उन्नत फसल रोग का पता लगाना',
+                mr: 'प्रगत पिक रोग ओळख'
+            };
+            
+            document.getElementById('subtitle').textContent = titles[language];
+            
+            // Re-run detection if results are showing
+            if (!document.getElementById('result').classList.contains('hidden')) {
+                detectDisease();
+            }
+        }
+
+        // Notification System
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            const notificationContent = document.getElementById('notificationContent');
+            const notificationIcon = document.getElementById('notificationIcon');
+            const notificationText = document.getElementById('notificationText');
+            
+            // Set icon and colors based on type
+            const types = {
+                success: { icon: 'fas fa-check-circle', bg: 'bg-green-500', text: 'text-white' },
+                error: { icon: 'fas fa-exclamation-circle', bg: 'bg-red-500', text: 'text-white' },
+                warning: { icon: 'fas fa-exclamation-triangle', bg: 'bg-yellow-500', text: 'text-white' },
+                info: { icon: 'fas fa-info-circle', bg: 'bg-blue-500', text: 'text-white' }
+            };
+            
+            const config = types[type] || types.info;
+            
+            notificationIcon.className = `${config.icon} text-xl`;
+            notification.className = `notification rounded-lg shadow-lg p-4 max-w-sm ${config.bg} ${config.text}`;
+            notificationText.textContent = message;
+            
+            // Show notification
+            notification.classList.add('show');
+            
+            // Auto hide after 4 seconds
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 4000);
+        }
+
+        // Utility Functions
+        function isValidEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', function() {
+            setupDragAndDrop();
+            
+            // Check if user is already logged in
+            const storedEmail = localStorage.getItem('email');
+            if (storedEmail && document.getElementById('auth').style.display !== 'none') {
+                // Could auto-login here if desired
+            }
+        });
+
+        // Handle form submission with Enter key
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const authVisible = !document.getElementById('auth').classList.contains('hidden');
+                if (authVisible) {
+                    const email = document.getElementById('email').value;
+                    const password = document.getElementById('password').value;
+                    if (email && password) {
+                        login();
+                    }
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>
